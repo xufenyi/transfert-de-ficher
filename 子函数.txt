@@ -1,0 +1,52 @@
+* Check the epipolar constraint on the rectified images:
+*    (the differences of the features' row coordinates should be small)
+* Parameter settings for find_caltab and find_marks_and_pose
+SizeGauss := 3
+MarkThresh := 120
+MinDiamMarks := 5
+StartThresh := 128
+DeltaThresh := 10
+MinThresh := 18
+Alpha := 0.9
+MinContLength := 15
+MaxDiamMarks := 100
+* 
+* Find the calibration points and the correspondences of these points in both images:
+find_caltab (ImageRectifiedL, CaltabL, CaltabFile, SizeGauss, MarkThresh, MinDiamMarks)
+find_marks_and_pose (ImageRectifiedL, CaltabL, CaltabFile, RectCamParL, StartThresh, DeltaThresh, MinThresh, Alpha, MinContLength, MaxDiamMarks, RCoordL, CCoordL, StartPoseL)
+find_caltab (ImageRectifiedR, CaltabR, CaltabFile, SizeGauss, MarkThresh, MinDiamMarks)
+find_marks_and_pose (ImageRectifiedR, CaltabR, CaltabFile, RectCamParR, StartThresh, DeltaThresh, MinThresh, Alpha, MinContLength, MaxDiamMarks, RCoordR, CCoordR, StartPoseR)
+EpipolarError := max(abs(RCoordR - RCoordL))
+* Visualize the rectified images and the result of the epipolar test:
+get_cam_par_data (RectCamParL, 'image_width', ImageWidthL)
+get_cam_par_data (RectCamParL, 'image_height', ImageHeightL)
+dev_set_window (WindowHandle1)
+dev_set_color ('yellow')
+dev_clear_window ()
+dev_set_part (0, 0, ImageHeightL - 1, ImageWidthL - 1)
+dev_display (ImageRectifiedL)
+for Index := 6 to 49 by 7
+    * Display the epipolar line of a certain point
+    gen_contour_polygon_xld (EpipolarLine, [round(RCoordL[Index]),round(RCoordL[Index])], [0,ImageWidthL - 1])
+    dev_display (EpipolarLine)
+endfor
+gen_cross_contour_xld (Cross, RCoordL, CCoordL, 6, 0)
+dev_display (Cross)
+String := 'Maximum measured error of the'
+String[1] := 'epipolar constraint: ' + EpipolarError$'.3f' + ' px'
+disp_message (WindowHandle1, String, 'window', 180, 12, 'white', 'false')
+get_cam_par_data (RectCamParR, 'image_width', ImageWidthR)
+get_cam_par_data (RectCamParR, 'image_height', ImageHeightR)
+dev_set_window (WindowHandle2)
+dev_set_color ('yellow')
+dev_clear_window ()
+dev_set_part (0, 0, ImageHeightR - 1, ImageWidthR - 1)
+dev_display (ImageRectifiedR)
+for Index := 6 to 49 by 7
+    * display the epipolar line of a certain point
+    gen_contour_polygon_xld (EpipolarLine, [round(RCoordL[Index]),round(RCoordL[Index])], [0,ImageWidthR - 1])
+    dev_display (EpipolarLine)
+endfor
+gen_cross_contour_xld (Cross, RCoordR, CCoordR, 6, 0)
+dev_display (Cross)
+return ()
